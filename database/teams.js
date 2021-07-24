@@ -1,4 +1,3 @@
-const connection = require('../db');
 const db = require("typeorm");
 const {timesCampeonato, timesCopa} = require('../controllers/establishingTeams');
 
@@ -14,7 +13,6 @@ async function buscarTimes() {
     todosOsTimes = [...new Set(todosOsTimes)];
     salvarTimes(todosOsTimes);
 }
-buscarTimes();
 
 async function salvarTimes(times){
     for(const time of times){
@@ -38,3 +36,5 @@ async function salvarTimes(times){
         .catch(err => console.log(err));
     }
 }
+
+module.exports = buscarTimes;

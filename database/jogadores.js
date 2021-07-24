@@ -1,4 +1,3 @@
-const connection = require('../db');
 const db = require("typeorm");
 const searchJogadores = require('../puppeteer/searchJogadores/jogadores');
 
@@ -51,6 +50,5 @@ const team = async() => {
     })
   }
 }
-team();
 
 module.exports = team;
