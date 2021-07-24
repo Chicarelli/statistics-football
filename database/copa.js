@@ -1,30 +1,45 @@
-const db = require('../db');
 const copa = require('../puppeteer/searchCopa/copa');
-const copasBuscadas = ['Libertadores', 'Paulistão', 'Champions League'];
-// const copasBuscadas = ['Libertadores'];
+// const copasBuscadas = ['Libertadores', 'Paulistão', 'Champions League'];
+const db = require('typeorm');
+const copasBuscadas = ['Libertadores'];
 
 async function searchCopa(){
     for (const cup of copasBuscadas){
-        await copa(cup).then(response => {
-            db.query('SELECT nome, id_campeonato FROM football.campeonato WHERE nome = ?', [response.title],
-                function (err, result) {
-                    if (result.length == 0) {
-                        //Insert Into tabela. 
-                        db.query('INSERT INTO football.campeonato (nome, classificacao) VALUES (?, ?)', [response.title, JSON.stringify(response.classificacao)],
-                            function (err, result) {
-                                console.log('erro:', err);
-                                console.log('result:', result)
-                            })
-                    } else {
-                        db.query('UPDATE football.campeonato SET classificacao = ?, updated_at = CURRENT_TIMESTAMP WHERE nome = ?', [JSON.stringify(response.classificacao), response.title],
-                            function (err, result) {
-                                console.log('erro: ', err);
-                                console.log('result: ', result);
-                            }
-                        )
-                    }
+        await copa(cup).then(async response => {
+            db.getConnection()
+            .createQueryBuilder()
+            .select("*")
+            .from("campeonato")
+            .where("nome = :nome", {nome: response.title})
+            .execute()
+            .then(async data => {
+                if(data.length == 0){
+                    db.getConnection()
+                    .createQueryBuilder()
+                    .insert()
+                    .into("campeonato")
+                    .values([
+                        {
+                            nome: response.title,
+                            classificacao: JSON.stringify(response.classificacao)
+                        }
+                    ])
+                    .execute();
+                } else {
+                    db.getConnection()
+                    .createQueryBuilder()
+                    .update("campeonato")
+                    .set({
+                        classificacao: JSON.stringify(response.classificacao),
+                        updated_at: new Date()
+                    })
+                    .where("nome = :nome", {nome: response.title})
+                    .execute();
                 }
-            )
+            })
+            .catch(error => {
+                console.log('Ih, errinho!', error);
+            })
         })
         .catch(error => {
             console.log('Erro no campeonato: ', cup);

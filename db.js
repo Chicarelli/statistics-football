@@ -1,11 +1,7 @@
-const mysql = require('mysql2');
+const typeORM = require('typeorm');
 
-const connection = mysql.createConnection({
-    host: 'localhost', 
-    user: 'root', 
-    password: 'admin', 
-    database: 'football'
-    
-});
+const connection = async () => {
+    return await typeORM.createConnection();
+} 
 
 module.exports = connection;
